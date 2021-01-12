@@ -1,0 +1,303 @@
+
+module divfreq(input CLK, output reg CLK_div);
+	reg [24:0] Count;
+	always @(posedge CLK)
+	begin
+		if(Count > 50000)
+		begin
+			Count <= 24'b0;
+			CLK_div <= ~CLK_div;
+		end
+		else
+			Count <= Count + 1'b1;
+	end
+endmodule
+
+module divcounter(input CLK, output reg CLK_div);
+	reg [24:0] Count;
+	always @(posedge CLK)
+	begin
+		if(Count > 25000000)
+		begin
+			Count <= 24'b0;
+			CLK_div <= ~CLK_div;
+		end
+		else
+			Count <= Count + 1'b1;
+	end
+endmodule
+
+module divpause(input CLK, output reg CLK_div);
+	reg [24:0] Count;
+	always @(posedge CLK)
+	begin
+		if(Count > 5000000)
+		begin
+			Count <= 24'b0;
+			CLK_div <= ~CLK_div;
+		end
+		else
+			Count <= Count + 1'b1;
+	end
+endmodule
+
+
+module divjump(input pause,input CLK, output reg CLK_div);
+	reg [24:0] Count;
+	always @(posedge CLK)
+	begin
+		if(Count > 1250000)
+		begin
+			Count <= 24'b0;
+			CLK_div <= ~CLK_div;
+		end
+		else
+		begin
+			if(pause==1)
+				Count <= Count;
+			else
+				Count <= Count + 1'b1;
+		end
+	end
+endmodule
+
+module bdivobject(input speed,input pause,input CLK, output reg CLK_div);
+	reg [24:0] Count;
+	always @(posedge CLK)
+	begin
+		if(Count > 2500000-speed)
+		begin
+			Count <= 24'b0;
+			CLK_div <= ~CLK_div;
+		end
+		else
+			begin
+			if(pause==1)
+				Count <= Count;
+			else
+				Count <= Count + 1'b1;
+			end
+	end
+endmodule
+
+module qwer(
+	input CLK,
+	input clk,
+	input jump,
+	input Clear,
+	output [7:0] routled,
+	output [7:0] goutled,
+	output [7:0] boutled,
+	output reg [7:0] A_count,
+	output reg [2:0] whichCol
+);
+initial
+begin
+	whichCol=0;
+end
+integer da=7;
+integer ob=7;
+integer og=7;
+integer speed=0;
+integer forward=0;
+integer pause=0;
+reg [7:0] stateR[7:0];
+reg [7:0] stateG[7:0];
+reg [7:0] stateB[7:0];
+divfreq f0(CLK, CLK_div);
+divjump f1(pause,CLK, CLK_jump);
+bdivobject f3(speed,pause,CLK,CLK_bobject);
+divcounter f5(CLK,CLK_counter);
+divpause f6(CLK,CLK_pause);
+always@(posedge CLK_counter, posedge Clear)
+begin
+	if(Clear) 
+	begin
+	A_count <= 8'b00000000;
+	end
+	else if(pause) A_count <= A_count;
+	else A_count <= A_count + 1'b1;
+end
+always@(posedge CLK_pause)
+begin
+if(ob==0 || ob==1 || og==0 || og==1)
+	begin
+			if((ob==0 && da-1>=6) || (ob==1 && da-1>=6) || (og==0 && da-1>=4) || (og==1 && da-1>=4))
+			begin
+				pause=1;
+			end		
+	end
+if(Clear)
+	pause=0;
+end
+always@(posedge CLK_jump)
+begin
+	if(jump)
+		begin 
+
+				stateR[0] = 8'b00000000;			
+				stateR[1] = 8'b00000000;
+				stateR[2] = 8'b00000000;
+				stateR[3] = 8'b00000000;
+				stateR[4] = 8'b00000000;
+				stateR[5] = 8'b00000000;
+				stateR[6] = 8'b00000000;
+				stateR[7] = 8'b00000000;
+				
+				
+				if(da <= 0)
+					forward=1;
+				if(forward == 0)
+				begin
+					stateR[0][da]=1;
+					stateR[0][da-1]=0;
+					stateR[1][da]=1;
+					stateR[1][da-1]=1;
+					da=da-1;
+				end
+				else
+				begin 
+					stateR[0][da]=1;
+					stateR[0][da-1]=0;
+					stateR[1][da]=1;
+					stateR[1][da-1]=1;
+					da=da+1;
+				end
+				if(da >= 8)
+				begin
+					forward = 0;
+					da=7;
+					stateR[0][da]=1;
+					stateR[0][da-1]=0;
+					stateR[1][da]=1;
+					stateR[1][da-1]=1;
+				end
+		end		
+		
+	else
+		begin 
+
+				stateR[0] = 8'b00000000;			
+				stateR[1] = 8'b00000000;
+				stateR[2] = 8'b00000000;
+				stateR[3] = 8'b00000000;
+				stateR[4] = 8'b00000000;
+				stateR[5] = 8'b00000000;
+				stateR[6] = 8'b00000000;
+				stateR[7] = 8'b00000000;
+				
+				
+				if(da!=7)
+				begin
+					stateR[0][da]=1;
+					stateR[0][da-1]=0;
+					stateR[1][da]=1;
+					stateR[1][da-1]=1;
+					da=da+1;
+				end
+				else
+					begin
+						stateR[0] = 8'b10000000;			
+						stateR[1] = 8'b11000000;
+						stateR[2] = 8'b00000000;
+						stateR[3] = 8'b00000000;
+						stateR[4] = 8'b00000000;
+						stateR[5] = 8'b00000000;
+						stateR[6] = 8'b00000000;
+						stateR[7] = 8'b00000000;
+					end
+		end	
+	if(ob==0 || ob==1 || og==0 || og==1)
+	begin
+			if((ob==0 && da-1>=6) || (ob==1 && da-1>=6) || (og==0 && da-1>=4) || (og==1 && da-1>=4))
+			begin
+				stateR[0] = 8'b10000001;			
+				stateR[1] = 8'b01000010;
+				stateR[2] = 8'b00100100;
+				stateR[3] = 8'b00011000;
+				stateR[4] = 8'b00011000;
+				stateR[5] = 8'b00100100;
+				stateR[6] = 8'b01000010;
+				stateR[7] = 8'b10000001;
+			end		
+	end	
+end
+always@(posedge CLK_bobject)
+begin
+
+	stateB[0] = 8'b00000000;
+	stateB[1] = 8'b00000000;
+	stateB[2] = 8'b00000000;
+	stateB[3] = 8'b00000000;
+	stateB[4] = 8'b00000000;
+	stateB[5] = 8'b00000000;
+	stateB[6] = 8'b00000000;
+	stateB[7] = 8'b00000000;	
+	
+	stateB[ob][7]=1;
+	stateB[ob][6]=1;
+	ob=ob-1;
+	
+	if(ob == (-13))
+		ob=7;
+	if(ob==0 || ob==1 || og==0 || og==1)
+	begin
+			if((ob==0 && da-1>=6) || (ob==1 && da-1>=6) || (og==0 && da-1>=4) || (og==1 && da-1>=4))
+			begin
+				stateB[0] = 8'b00000000;
+				stateB[1] = 8'b00000000;
+				stateB[2] = 8'b00000000;
+				stateB[3] = 8'b00000000;
+				stateB[4] = 8'b00000000;
+				stateB[5] = 8'b00000000;
+				stateB[6] = 8'b00000000;
+				stateB[7] = 8'b00000000;
+			end		
+	end		
+end
+always@(posedge CLK_bobject)
+begin
+
+	stateG[0] = 8'b00000000;
+	stateG[1] = 8'b00000000;
+	stateG[2] = 8'b00000000;
+	stateG[3] = 8'b00000000;
+	stateG[4] = 8'b00000000;
+	stateG[5] = 8'b00000000;
+	stateG[6] = 8'b00000000;
+	stateG[7] = 8'b00000000;	
+	
+	stateG[og][4]=1;
+	stateG[og][7]=1;
+	stateG[og][6]=1;
+	stateG[og][5]=1;
+	og=og-1;
+	
+	if(og == (-19))
+		og=7;
+	
+	speed=speed+10000000;
+	
+	if(ob==0 || ob==1 || og==0 || og==1)
+	begin
+			if((ob==0 && da-1>=6) || (ob==1 && da-1>=6) || (og==0 && da-1>=4) || (og==1 && da-1>=4))
+			begin
+				stateG[0] = 8'b00000000;
+				stateG[1] = 8'b00000000;
+				stateG[2] = 8'b00000000;
+				stateG[3] = 8'b00000000;
+				stateG[4] = 8'b00000000;
+				stateG[5] = 8'b00000000;
+				stateG[6] = 8'b00000000;
+				stateG[7] = 8'b00000000;
+			end		
+	end	
+end
+always@(posedge CLK_div)
+begin
+	whichCol = whichCol + 1;
+end
+assign routled = ~stateR[whichCol];
+assign goutled = ~stateG[whichCol];
+assign boutled = ~stateB[whichCol];
+endmodule
